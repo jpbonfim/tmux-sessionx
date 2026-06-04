@@ -139,6 +139,12 @@ run_plugin() {
 	handle_input
 	args+=(--bind "$BACK")
 
+	# Add rename session / window binding dynamically to avoid serialization escaping bugs
+	bind_rename_session=$(tmux_option_or_fallback "@sessionx-bind-rename-session" "ctrl-r")
+	RENAME_SESSION_EXEC="bash -c 'trap '\''printf \"\r\033[K\" > /dev/tty'\'' EXIT; printf \"New name: \" > /dev/tty; name=\"\"; while true; do IFS= read -r -s -n 1 char < /dev/tty; if [[ \"\$char\" == \$'\''\e'\'' ]]; then name=\"\"; break; fi; if [[ \"\$char\" == \"\" ]]; then break; fi; if [[ \"\$char\" == \$'\''\177'\'' || \"\$char\" == \$'\''\b'\'' ]]; then if [ \${#name} -gt 0 ]; then name=\"\${name%?}\"; printf \"\b \b\" > /dev/tty; fi; else name+=\"\$char\"; printf \"%s\" \"\$char\" > /dev/tty; fi; done; [ -n \"\$name\" ] && { if [[ \"{1}\" == *:* ]]; then tmux rename-window -t {1} \"\$name\"; else tmux rename-session -t {1} \"\$name\"; fi; }'"
+	RENAME_SESSION_RELOAD="bash -c 'if [[ \"{1}\" == *:* ]]; then tmux list-windows -a -F \"#S:#I #W\"; elif [[ \"\$(tmux show-option -gqv @sessionx-git-branch)\" == \"on\" ]]; then ${CURRENT_DIR}/sessions_with_branches.sh; else tmux list-sessions | sed -E \"s/:.*\$//\"; fi'"
+	args+=(--bind "$bind_rename_session:execute($RENAME_SESSION_EXEC)+reload($RENAME_SESSION_RELOAD)")
+
 	git_branch_mode=$(tmux show-option -gqv @sessionx-_git-branch)
 	if [[ "$git_branch_mode" == "on" ]]; then
 		FZF_LISTEN_PORT=$((RANDOM % 10000 + 20000))

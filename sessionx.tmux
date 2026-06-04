@@ -87,10 +87,6 @@ handle_args() {
 	SCROLL_UP="$bind_scroll_up:preview-half-page-up"
 	SCROLL_DOWN="$bind_scroll_down:preview-half-page-down"
 
-	RENAME_SESSION_EXEC='bash -c '\'' printf >&2 "New name: ";read name; tmux rename-session -t {1} "${name}"; '\'''
-	RENAME_SESSION_RELOAD='bash -c '\'' tmux list-sessions | sed -E "s/:.*$//"; '\'''
-	RENAME_SESSION="$bind_rename_session:execute($RENAME_SESSION_EXEC)+reload($RENAME_SESSION_RELOAD)"
-
 	HEADER="$bind_accept=󰿄  $bind_kill_session=󱂧  $bind_rename_session=󰑕  $bind_configuration_mode=󱃖  $bind_window_mode=   $bind_new_window=󰇘  $bind_back=󰌍  $bind_tree_mode=󰐆   $bind_scroll_up=  $bind_scroll_down= / $bind_zo="
 	if is_fzf-marks_enabled; then
 		HEADER="$HEADER  $(get_fzf-marks_keybind)=󰣉"
@@ -117,7 +113,6 @@ handle_args() {
 		--bind "$ACCEPT"
 		--bind "$SCROLL_UP"
 		--bind "$SCROLL_DOWN"
-		--bind "$RENAME_SESSION"
 		--bind '?:toggle-preview'
 		--bind 'change:first'
 		--exit-0
